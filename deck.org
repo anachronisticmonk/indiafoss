@@ -398,7 +398,7 @@ def test_pages_partition(rows, per_page):
 
 They make you /write the contract down./ They do not make you discharge it. Most of the value, a fraction of the price, and you can do it this afternoon.
 
-* And it is not a panacea
+* And it is not a silver bullet
 
 I am not claiming proof solves everything. Verify every line on the planet and your software will still meet a bug.
 #+pause:
@@ -432,7 +432,8 @@ this was never about certainty
 {{{faint(linkedin)}}}   in/durwasa-chakraborty
 #+pause:
 
-Special thanks to *Anirudh Gupta*, IISc Bangalore. The idea behind this talk is his.
+Special thanks to *Anirudh Gupta*, IISc Bangalore for verify within boundaries and *Prof. KC Sivaramakrishnan* for PBT and fuzzing.
+
 #+pause:
 
 Every tool in this talk is free software.  «faint»
