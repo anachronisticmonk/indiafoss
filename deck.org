@@ -418,7 +418,7 @@ this was never about certainty
 
 /LGTM is a vote. A theorem is a receipt./
 
-{{{faint(email)}}}      {{{accent(cs24d011@cse.iitm.ac.in)}}}  {{{good(preferred)}}}
+{{{faint(email)}}}      {{{accent(durwasa.chakraborty@gmail.com)}}}  {{{good(preferred)}}}
 {{{faint(blog)}}}       durwasa-chakraborty.github.io
 {{{faint(github)}}}     github.com/durwasa-chakraborty
 {{{faint(bluesky)}}}    durwasa.bsky.social
