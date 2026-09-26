@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LGTM Is Not a Theorem</title>
+<style>
+  :root{
+    --ground:#242933;
+    --panel:#2E3440;
+    --panel-2:#353C4A;
+    --rule:#434C5E;
+    --ink:#E5E9F0;
+    --dim:#96A0B5;
+    --faint:#6B7689;
+    --accent:#88C0D0;
+    --good:#A3BE8C;
+    --bad:#BF616A;
+    --warn:#EBCB8B;
+    --violet:#B48EAD;
+    --term:#20252E;
+    --row:#383F4D;
+    --row-2:#333a47;
+    --good-line:#4a7150;
+    --bad-line:#7d454c;
+    --scrim:rgba(20,24,31,.97);
+    --shadow:rgba(0,0,0,.36);
+    color-scheme:dark;
+
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --mono:"Fira Code","Fira Code Retina","SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  /* light theme: Nord Snow Storm ground, inks darkened for projector contrast */
+  :root[data-theme="light"]{
+    --ground:#ECEFF4;
+    --panel:#E5E9F0;
+    --panel-2:#D8DEE9;
+    --rule:#C3CBD9;
+    --ink:#2E3440;
+    --dim:#4C566A;
+    --faint:#737D90;
+    --accent:#3E7896;
+    --good:#557A3E;
+    --bad:#A63D48;
+    --warn:#8F6400;
+    --violet:#83577E;
+    --term:#F4F6F9;
+    --row:#D3D9E3;
+    --row-2:#D8DEE9;
+    --good-line:#9DBA88;
+    --bad-line:#D59AA0;
+    --scrim:rgba(236,239,244,.97);
+    --shadow:rgba(46,52,64,.16);
+    color-scheme:light;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--ground);color:var(--ink);
+    font-family:var(--mono);overflow:hidden;
+  }
+
+  /* ---------- stage: fixed 16:9, scaled to the projector ---------- */
+  #viewport{position:fixed;inset:0;display:grid;place-items:center}
+  #stage{
+    position:relative;width:1280px;height:720px;
+    transform-origin:center center;
+  }
+  .slide{
+    position:absolute;inset:0;
+    padding:62px 76px 70px;
+    display:flex;flex-direction:column;overflow:hidden;
+    opacity:0;visibility:hidden;
+    transition:opacity .22s ease;
+  }
+  .slide.active{opacity:1;visibility:visible}
+
+  /* ---------- slide furniture ---------- */
+  h1{
+    font-family:var(--serif);font-weight:600;
+    font-size:40px;line-height:1.14;letter-spacing:-.01em;
+    margin:0 0 6px;text-wrap:balance;color:var(--ink);
+  }
+  h1 .q{color:var(--dim)}
+  .rule{width:54px;height:3px;background:var(--accent);border-radius:2px;margin:0 0 26px}
+  .body{flex:1;min-height:0;display:flex;flex-direction:column;gap:18px;
+        justify-content:center}
+  .body.top{justify-content:flex-start}
+  .lede{font-size:19px;line-height:1.62;color:var(--dim);max-width:60ch}
+  .lede strong{color:var(--ink);font-weight:600}
+  .kicker{font-size:19px;line-height:1.6;color:var(--ink)}
+  .kicker em{font-style:normal;color:var(--accent)}
+  .punch{
+    font-family:var(--serif);font-size:25px;line-height:1.34;
+    color:var(--ink);text-wrap:balance;
+  }
+  .punch.bad{color:var(--bad)}
+  .punch em{font-style:normal;color:var(--accent)}
+  /* lines of one sentence, revealed one build at a time */
+  .punchlist{display:flex;flex-direction:column;gap:2px}
+  .punchlist .punch{margin:0}
+  .quiet{color:var(--faint);font-size:17px}
+  code.inline{
+    background:var(--panel);border:1px solid var(--rule);
+    border-radius:4px;padding:1px 6px;font-size:.92em;color:var(--warn);
+  }
+
+  /* ---------- code ---------- */
+  pre.code{
+    margin:0;background:var(--panel);border:1px solid var(--rule);
+    border-radius:8px;padding:20px 24px;
+    font-size:18px;line-height:1.62;overflow:visible;
+    tab-size:4;
+  }
+  pre.code.sm{font-size:16.5px;line-height:1.58}
+  .k{color:var(--accent)}
+  .s{color:var(--good)}
+  .c{color:var(--faint);font-style:italic}
+  .b{color:var(--violet)}
+  .d{color:var(--warn)}
+  .n{color:var(--violet)}
+  .mark{background:rgba(191,97,106,.17);display:block;
+        margin:0 -24px;padding:0 24px;border-left:3px solid var(--bad)}
+
+  /* ---------- terminal ---------- */
+  .term{
+    background:var(--term);border:1px solid var(--rule);border-radius:8px;
+    padding:18px 24px;font-size:17px;line-height:1.66;color:var(--dim);
+  }
+  .term .hi{color:var(--bad)}
+  .term .ok{color:var(--good)}
+  .term .w{color:var(--ink)}
+
+  /* ---------- stat pills ---------- */
+  .pills{display:flex;gap:12px;flex-wrap:wrap}
+  .pill{
+    border:1px solid var(--rule);border-radius:999px;
+    padding:6px 16px;font-size:16px;color:var(--dim);
+    background:var(--panel);
+  }
+  .pill.good{color:var(--good);border-color:var(--good-line);background:rgba(163,190,140,.10)}
+  .pill.bad{color:var(--bad);border-color:var(--bad-line);background:rgba(191,97,106,.10)}
+
+  /* ---------- comparison table ---------- */
+  table.cmp{
+    border-collapse:collapse;font-size:17px;
+    font-variant-numeric:tabular-nums;width:100%;
+  }
+  table.cmp th{
+    text-align:right;font-weight:500;color:var(--faint);
+    font-size:13px;letter-spacing:.09em;text-transform:uppercase;
+    padding:0 14px 9px;border-bottom:1px solid var(--rule);
+  }
+  table.cmp th:first-child{text-align:left}
+  table.cmp td{padding:13px 14px;border-bottom:1px solid var(--row);text-align:right;color:var(--dim)}
+  table.cmp td:first-child{text-align:left;color:var(--ink)}
+  table.cmp td.v{font-weight:600;font-size:19px}
+  table.cmp tr.a td.v{color:var(--good)}
+  table.cmp tr.b td.v{color:var(--warn)}
+
+  /* ---------- figure ---------- */
+  figure{margin:0;flex:1;min-height:0;display:flex;flex-direction:column;
+         align-items:center;justify-content:center;gap:12px}
+  figure img{
+    max-width:100%;max-height:100%;object-fit:contain;
+    border:1px solid var(--rule);border-radius:8px;
+    box-shadow:0 14px 40px var(--shadow);
+  }
+  figcaption{font-size:15px;color:var(--faint)}
+  /* an inline coverage report sitting under code, not filling the slide */
+  figure.shot{flex:1 1 auto;min-height:0;align-items:stretch;justify-content:flex-start}
+  figure.shot img{width:100%;height:auto;max-height:100%;object-fit:contain;
+                  object-position:top left}
+
+  /* ---------- title slide ---------- */
+  .title-slide{justify-content:center}
+  .title-slide h1{font-size:62px;margin-bottom:14px}
+  .title-slide .sub{
+    font-family:var(--serif);font-size:24px;color:var(--accent);
+    font-style:italic;margin-bottom:34px;
+  }
+  .who{display:flex;flex-direction:column;gap:3px;font-size:17px;color:var(--dim)}
+  .who .nm{font-size:21px;color:var(--ink);margin-bottom:9px}
+  .who .prev{margin-top:11px;color:var(--faint)}
+  .who .prev b{color:var(--dim);font-weight:500}
+  .venue{margin-top:30px;font-size:15px;color:var(--faint);letter-spacing:.08em}
+
+  /* ---------- the specification ---------- */
+  .formula{
+    font-size:30px;line-height:1.4;color:var(--accent);
+    background:var(--panel);border:1px solid var(--rule);
+    border-left:3px solid var(--accent);border-radius:8px;
+    padding:22px 30px;text-align:center;letter-spacing:.01em;
+  }
+  .formula .sm{font-size:19px;color:var(--dim);display:block;margin-top:9px}
+
+  /* ---------- the live-ish lean toggle ---------- */
+  .lean .hyp{background:rgba(235,203,139,.22);border-radius:3px;padding:0 3px;
+             color:var(--warn);transition:all .2s ease}
+  .lean.broken .hyp{background:rgba(191,97,106,.18);color:var(--bad);
+                    text-decoration:line-through;opacity:.55}
+  .toggle{font-family:var(--mono);font-size:15px;cursor:pointer;
+          background:var(--panel-2);color:var(--ink);
+          border:1px solid var(--rule);border-radius:7px;padding:8px 18px;
+          align-self:flex-start;transition:all .15s ease}
+  .toggle:hover,.toggle:focus-visible{border-color:var(--accent);
+          color:var(--accent);outline:none}
+  .lean .ok,.lean .err{font-size:16px;line-height:1.7;border-radius:8px;
+          padding:14px 22px;border:1px solid var(--rule);background:var(--term)}
+  .lean .ok{color:var(--good);border-left:3px solid var(--good)}
+  .lean .err{color:var(--dim);border-left:3px solid var(--bad);display:none}
+  .lean .err b{color:var(--bad);font-weight:600}
+  .lean .err i{color:var(--faint);font-style:normal}
+  .lean.broken .ok{display:none}
+  .lean.broken .err{display:block}
+
+  /* ---------- contact list ---------- */
+  .links{display:grid;grid-template-columns:auto 1fr;gap:9px 22px;font-size:18px;
+         align-items:baseline}
+  .links dt{color:var(--faint);font-size:14px;letter-spacing:.07em;
+            text-transform:uppercase;white-space:nowrap}
+  .links dd{margin:0;color:var(--ink)}
+  .links dd.pref{color:var(--accent)}
+  .links .tag{color:var(--good);font-size:13px;letter-spacing:.06em}
+
+  /* ---------- a mock admin table, for the pagination slide ---------- */
+  .ui{background:var(--panel);border:1px solid var(--rule);border-radius:10px;
+      overflow:hidden;box-shadow:0 10px 30px var(--shadow)}
+  .ui .hd{background:var(--panel-2);padding:10px 20px;font-size:13px;
+          color:var(--dim);letter-spacing:.09em;text-transform:uppercase;
+          border-bottom:1px solid var(--rule)}
+  .ui table{width:100%;border-collapse:collapse;font-size:16px}
+  .ui td{padding:9px 20px;color:var(--dim);border-bottom:1px solid var(--row-2)}
+  .ui td.amt{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .ui td.st{color:var(--good);font-size:14px;width:90px}
+  .pager{display:flex;gap:6px;align-items:center;padding:13px 20px;
+         font-size:15px;color:var(--faint)}
+  .pager .pg{padding:3px 11px;border-radius:5px}
+  .pager .pg.on{background:var(--accent);color:var(--ground);font-weight:600}
+  .pager .count{margin-left:auto;font-size:14px;color:var(--faint)}
+
+  /* ---------- correspondence rails ---------- */
+  .rail{border-left:2px solid var(--rule);padding-left:14px;margin-left:2px}
+  .rail.py{border-left-color:var(--accent)}
+  .rail.ln{border-left-color:var(--violet)}
+  .tag{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;
+       color:var(--faint);margin-bottom:7px}
+  .tag.py{color:var(--accent)}
+  .tag.ln{color:var(--violet)}
+
+  /* ---------- execution traces ---------- */
+  table.trace{border-collapse:collapse;width:100%;font-size:15px}
+  table.trace th{
+    font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--faint);text-align:left;font-weight:500;
+    padding:0 10px 7px;border-bottom:1px solid var(--rule);
+  }
+  table.trace th.st{text-align:right}
+  table.trace td{padding:7px 10px;white-space:nowrap;color:var(--dim);border-bottom:1px solid var(--row-2)}
+  table.trace td.w{color:var(--accent);width:62px}
+  table.trace td.st{text-align:right;color:var(--faint);
+                    font-variant-numeric:tabular-nums;white-space:nowrap}
+  table.trace tr.hot td.st{color:var(--warn);font-weight:600}
+  table.trace tr.boom td{color:var(--bad)}
+  table.trace tr.boom td.st{color:var(--bad);font-weight:600}
+  table.trace tr.ghost td{color:var(--faint);font-style:italic}
+
+  /* ---------- side-by-side code ---------- */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+  .split .col{display:flex;flex-direction:column;gap:8px;min-width:0}
+  .split .cap{font-size:14px;color:var(--faint);letter-spacing:.05em}
+  .split .cap b{color:var(--accent);font-weight:500}
+  .hlt{background:rgba(235,203,139,.20);border-radius:3px;
+       padding:0 3px;color:var(--warn)}
+
+  /* ---------- payment lifecycle strip ---------- */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:nowrap}
+  .flow .stage{
+    background:var(--panel);border:1px solid var(--rule);border-radius:8px;
+    padding:11px 20px;display:flex;flex-direction:column;gap:2px;
+  }
+  .flow .stage b{font-size:17px;color:var(--dim);letter-spacing:.04em;font-weight:600}
+  .flow .stage span{font-size:14px;color:var(--faint)}
+  .flow .stage.on{border-color:var(--accent);background:rgba(136,192,208,.09)}
+  .flow .stage.on b{color:var(--accent)}
+  .flow .arr{display:flex;align-items:center;color:var(--rule);
+             font-size:20px;padding:0 14px}
+  .lag{font-size:15px;color:var(--faint);margin-top:-4px}
+  .lag b{color:var(--warn);font-weight:500}
+
+  /* ---------- proof obligations ---------- */
+  .goal{
+    background:var(--panel);border:1px solid var(--rule);
+    border-left:3px solid var(--bad);border-radius:8px;
+    padding:18px 26px;font-size:19px;line-height:1.75;
+  }
+  .goal.ok{border-left-color:var(--good)}
+  .goal .lbl{color:var(--faint)}
+  .goal .no{color:var(--bad);font-weight:600}
+  .goal .yes{color:var(--good)}
+  .goal .dim{color:var(--dim)}
+
+  /* ---------- terminal cue for the demo beside the deck ---------- */
+  .cue{
+    position:absolute;left:76px;bottom:26px;
+    font-size:14px;color:var(--faint);letter-spacing:.04em;
+  }
+  .cue b{color:var(--accent);font-weight:500}
+
+  /* ---------- builds ---------- */
+  .step{opacity:0;transform:translateY(7px);transition:opacity .24s ease,transform .24s ease}
+  .step.on{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){
+    .slide,.step{transition:none}
+    .step{transform:none}
+  }
+
+  /* ---------- chrome ---------- */
+  #bar{position:fixed;left:0;bottom:0;height:2px;background:var(--accent);
+       width:0;transition:width .22s ease;z-index:5}
+  #num{position:fixed;right:16px;bottom:12px;font-size:13px;color:var(--faint);z-index:5;
+       font-variant-numeric:tabular-nums}
+  #theme{position:fixed;right:16px;top:12px;z-index:25;
+         font-family:var(--mono);font-size:13px;cursor:pointer;
+         background:var(--panel);color:var(--faint);
+         border:1px solid var(--rule);border-radius:6px;padding:4px 11px;
+         opacity:.55;transition:opacity .15s ease,color .15s ease,border-color .15s ease}
+  #theme:hover,#theme:focus-visible{opacity:1;color:var(--accent);
+         border-color:var(--accent);outline:none}
+  body{transition:background-color .2s ease,color .2s ease}
+  #hint{position:fixed;left:16px;bottom:12px;font-size:13px;color:var(--faint);z-index:5}
+
+  /* ---------- overview ---------- */
+  #ov{position:fixed;inset:0;background:var(--scrim);z-index:20;
+      padding:34px;overflow:auto;display:none}
+  #ov.on{display:block}
+  #ov h2{font-family:var(--serif);font-size:22px;margin:0 0 20px;color:var(--dim);font-weight:500}
+  #ovg{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:14px}
+  .ovc{background:var(--panel);border:1px solid var(--rule);border-radius:8px;
+       padding:15px 17px;cursor:pointer;text-align:left;color:var(--dim);
+       font-family:var(--mono);font-size:14.5px;line-height:1.45;
+       display:flex;gap:11px;align-items:flex-start}
+  .ovc:hover,.ovc:focus-visible{border-color:var(--accent);color:var(--ink);outline:none}
+  .ovc .i{color:var(--faint);font-variant-numeric:tabular-nums;flex:none}
+
+  /* ---------- help ---------- */
+  #help{position:fixed;inset:0;background:var(--scrim);z-index:30;
+        display:none;place-items:center}
+  #help.on{display:grid}
+  #help .box{background:var(--panel);border:1px solid var(--rule);border-radius:10px;
+             padding:30px 38px;font-size:16px;line-height:2}
+  #help kbd{background:var(--ground);border:1px solid var(--rule);border-radius:4px;
+            padding:2px 9px;color:var(--accent);font-family:var(--mono);font-size:14px}
+  #help .box h3{font-family:var(--serif);margin:0 0 16px;font-size:20px;font-weight:600}
+  #help .box div{color:var(--dim)}
+</style>
+</head>
+<body>
+
+<div id="viewport"><div id="stage">
+
+  <!-- 0 : intro -->
+  <section class="slide title-slide">
+    <h1>LGTM Is Not a Theorem</h1>
+    <div class="sub">Pragmatic verification and the economics of software confidence</div>
+    <div class="who">
+      <div class="nm">Durwasa Chakraborty <span style="color:var(--faint);font-size:15px">(he/him)</span></div>
+      <div>PhD :: Formal Verification &amp; Programming Languages, IIT Madras</div>
+      <div>MS :: Northeastern University, Boston MA</div>
+      <div>BE :: Government Engineering College, Jabalpur MP</div>
+      <div class="prev">Previously <b>IBM</b> · <b>MathWorks</b> · <b>AWS</b></div>
+    </div>
+    <div class="venue">INDIAFOSS 2026</div>
+  </section>
+
+  <!-- 1 -->
+  <section class="slide">
+    <h1>Refunds. Tuesday.</h1><div class="rule"></div>
+    <div class="body">
+      <div class="flow">
+        <div class="stage"><b>AUTHORIZED</b><span>funds held on the card</span></div>
+        <div class="arr">&rarr;</div>
+        <div class="stage"><b>CAPTURED</b><span>funds taken from them</span></div>
+        <div class="arr">&rarr;</div>
+        <div class="stage on"><b>SETTLED</b><span>money in our account</span></div>
+      </div>
+      <p class="lag">capture &rarr; settlement is <b>T+1</b>.
+        Today we only refund what has settled.</p>
+      <figure class="shot">
+        <img src="img/cov-v1.png" data-light="img/cov-v1-light.png" alt="coverage report for refund_v1.py: 100%, 5 statements, 5 run, 0 missing, 0 partial">
+      </figure>
+      <div class="pills">
+        <span class="pill good">2 passed</span>
+        <span class="pill good">100%</span>
+        <span class="pill good">0 missing</span>
+        <span class="pill good">0 partial</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <h1>Wednesday: the same-day cancellation</h1><div class="rule"></div>
+    <div class="body">
+      <p class="lede">Settlement lags capture by a day, so a customer who
+      cancels that afternoon is <strong>CAPTURED</strong>, not
+      <strong>SETTLED</strong>, and support cannot refund them.</p>
+      <pre class="code sm" data-py>    if charge.status is Status.SETTLED:
+        gw.refund(charge.amount_minor)
+        charge.refunded = True
+    elif charge.status is Status.CAPTURED:      # the ticket
+        gw.refund(charge.amount_minor)
+        charge.refunded = True</pre>
+      <div class="pills">
+        <span class="pill bad">75% &nbsp;·&nbsp; missing 9-10</span>
+        <span class="pill good step">copy the test, change one word &nbsp;&rarr;&nbsp; 100%</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3b : the copy-paste -->
+  <section class="slide">
+    <h1>Copy the test. Change one word.</h1><div class="rule"></div>
+    <div class="body">
+      <div class="split">
+        <div class="col">
+          <div class="cap">the test that already exists</div>
+          <pre class="code sm" data-py>def test_refunds_a_settled_charge():
+    c = Charge(1, Status.SETTLED, 24900)
+    gw = Gateway()
+    refund(c, gw)
+    assert gw.refunds == [24900]</pre>
+        </div>
+        <div class="col">
+          <div class="cap">the one you <b>paste under it</b></div>
+          <pre class="code sm"><span class="k">def</span> test_refunds_a_<span class="hlt">captured</span>_charge():
+    c = Charge(<span class="n">3</span>, Status.<span class="hlt">CAPTURED</span>, <span class="n">24900</span>)
+    gw = Gateway()
+    refund(c, gw)
+    <span class="k">assert</span> gw.refunds == [<span class="n">24900</span>]</pre>
+        </div>
+      </div>
+      <div class="pills step">
+        <span class="pill good">3 passed</span>
+        <span class="pill good">100%</span>
+        <span class="pill good">0 missing</span>
+        <span class="pill good">0 partial</span>
+      </div>
+      <p class="kicker step">Nine seconds of work. The build is green.
+        <em>Ship it.</em></p>
+    </div>
+  </section>
+
+  <!-- 3a : the incident -->
+  <section class="slide">
+    <h1>Thursday, 02:14. <span class="q">Sev-2.</span></h1><div class="rule"></div>
+    <div class="body">
+      <p class="lede">The gateway call for a refund times out. The job
+      <strong>retries</strong> it. Nothing in <code class="inline">refund()</code>
+      remembers that the first one already went through.</p>
+      <div class="term step">
+        <span class="hi">[SEV-2]</span> <span class="w">refunds: duplicate payouts in prod</span><br>
+        refund(charge 3)&nbsp;&nbsp;gw.refund(24900)&nbsp;&nbsp;<span class="ok">ok</span>&nbsp;&nbsp;<span style="opacity:.7">timeout</span><br>
+        refund(charge 3)&nbsp;&nbsp;gw.refund(24900)&nbsp;&nbsp;<span class="ok">ok</span>&nbsp;&nbsp;<span class="w">&larr; retry</span><br>
+        gw.refunds: [24900, 24900]&nbsp;&nbsp;<span class="hi">refunded twice</span>
+      </div>
+      <div class="pills step">
+        <span class="pill bad">49800 out on a 24900 charge</span>
+        <span class="pill bad">every retried refund pays twice</span>
+        <span class="pill good">coverage: still 100%</span>
+      </div>
+      <p class="kicker step">We are losing money. <em>Patch it tonight.</em></p>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <h1>So you patch it</h1><div class="rule"></div>
+    <div class="body">
+      <div class="split">
+        <div class="col">
+          <div class="cap">the guard</div>
+          <pre class="code sm" data-py>def refund(charge, gw) -&gt; None:
+    if charge.refunded:      # the patch
+        return
+    if charge.status in REFUNDABLE:
+        gw.refund(charge.amount_minor)
+        charge.refunded = True</pre>
+        </div>
+        <div class="col">
+          <div class="cap">and the test for it &nbsp;<b>82% &rarr; 100%</b></div>
+          <pre class="code sm" data-py>def test_refunding_twice_refunds_once():
+    c = Charge(4, Status.SETTLED, 24900)
+    gw = Gateway()
+    refund(c, gw)
+    refund(c, gw)
+    assert gw.refunds == [24900]</pre>
+        </div>
+      </div>
+      <div class="pills step">
+        <span class="pill good">4 passed</span>
+        <span class="pill good">100%</span>
+        <span class="pill good">0 missing</span>
+        <span class="pill good">0 partial</span>
+      </div>
+      <div class="term step">
+        gw.refunds: [24900]&nbsp;&nbsp;<span class="ok">retry is a no-op</span>
+      </div>
+      <p class="kicker step">Idempotent now. Incident closed. <em>Properly fixed.</em></p>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <h1>More testing&hellip; <span class="q">more testing&hellip;</span> <span class="q" style="opacity:.45">more testing&hellip;</span></h1><div class="rule"></div>
+    <div class="body">
+      <figure>
+        <img src="img/aib.png" alt="AIB sketch still, subtitle: Testing mein bitha denge">
+      </figure>
+      <p class="punch bad step">Testing will not catch this one.</p>
+    </div>
+  </section>
+
+  <!-- 5b : the two traces -->
+  <section class="slide">
+    <h1>Two ways in. The same broken state.</h1><div class="rule"></div>
+    <div class="body">
+      <div class="split">
+        <div class="col">
+          <div class="cap">one worker, <b>a timeout</b></div>
+          <table class="trace">
+            <thead><tr><th>who</th><th>step</th><th class="st">(r, p)</th></tr></thead>
+            <tbody>
+              <tr><td class="w">A</td><td>read flag &rarr; false</td><td class="st">(false, 0)</td></tr>
+              <tr class="hot"><td class="w">A</td><td>gw.refund()</td><td class="st">(false, 1)</td></tr>
+              <tr class="ghost"><td class="w">A</td><td>504, exception</td><td class="st">raises</td></tr>
+              <tr class="ghost"><td class="w">A</td><td>refunded = True</td><td class="st">never runs</td></tr>
+              <tr><td class="w">retry</td><td>read flag &rarr; false</td><td class="st">(false, 1)</td></tr>
+              <tr class="boom"><td class="w">retry</td><td>gw.refund()</td><td class="st">(false, 2)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col">
+          <div class="cap">two workers, <b>no failure at all</b></div>
+          <table class="trace">
+            <thead><tr><th>who</th><th>step</th><th class="st">(r, p)</th></tr></thead>
+            <tbody>
+              <tr><td class="w">A</td><td>read flag &rarr; false</td><td class="st">(false, 0)</td></tr>
+              <tr><td class="w">B</td><td>read flag &rarr; false</td><td class="st">(false, 0)</td></tr>
+              <tr class="hot"><td class="w">A</td><td>gw.refund()</td><td class="st">(false, 1)</td></tr>
+              <tr class="boom"><td class="w">B</td><td>gw.refund()</td><td class="st">(false, 2)</td></tr>
+              <tr class="ghost"><td class="w">A</td><td>refunded = True</td><td class="st">(true, 2)</td></tr>
+              <tr class="ghost"><td class="w">B</td><td>refunded = True</td><td class="st">(true, 2)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="kicker step">Both pass through
+        <code class="inline">(false, 1)</code>, money gone, flag still down.
+        <em>The guard reads the flag, so it waves both of them through.</em></p>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <h1>Then stop guessing the schedule</h1><div class="rule"></div>
+    <div class="body">
+      <p class="lede">A test has to pick an interleaving, and there are
+      exponentially many. So pick none. Instead prove that
+      <strong>every single step</strong> keeps one sentence true.</p>
+      <div class="formula">Agree(r, p) &nbsp;&equiv;&nbsp; p &le; 1&nbsp; &and; &nbsp;( r = false &rArr; p = 0 )
+        <span class="sm">the flag and the money agree</span>
+      </div>
+      <p class="kicker step">If it holds at the start, and no step can break it,
+        it holds in <em>every reachable state</em>, under every interleaving,
+        including the ones you never thought of.</p>
+    </div>
+  </section>
+
+  <!-- 6 : the proof fails -->
+  <section class="slide">
+    <h1>A trace you found. An obligation you cannot discharge.</h1>
+    <div class="rule"></div>
+    <div class="body">
+      <p class="lede">Two slides ago I showed you a bad execution. I had to
+      <strong>think of it first.</strong> This is different, nobody picks
+      the schedule, and nothing is searched for.</p>
+      <div class="goal">
+        <span class="lbl">assume</span>&nbsp; Agree(false, 0)<br>
+        <span class="lbl">step</span>&nbsp;&nbsp;&nbsp; t&#8322; : p += 1
+        &nbsp;&nbsp;<span class="dim">(gw.refund returns)</span><br>
+        <span class="lbl">show</span>&nbsp;&nbsp;&nbsp; Agree(false, 1)<br><br>
+        &nbsp;&nbsp;1 &le; 1 &nbsp;<span class="yes">&#10003;</span><br>
+        &nbsp;&nbsp;r = false &rArr; p = 0
+        &nbsp;&nbsp;<span class="dim">becomes</span>&nbsp;&nbsp; 1 = 0
+        &nbsp;&nbsp;<span class="no">&#10007; unprovable</span>
+      </div>
+      <p class="kicker step">The step moves money without moving the flag,
+        so there is nothing to prove. <em>The goal itself hands you the
+        bug, and every other route to it you never imagined.</em></p>
+    </div>
+  </section>
+
+  <!-- 7 : the fix -->
+  <section class="slide">
+    <h1>The same step, written twice</h1><div class="rule"></div>
+    <div class="body">
+      <div class="split">
+        <div class="col">
+          <div class="tag ln">what is proved</div>
+          <pre class="code sm"><span class="k">def</span> cas (s : St) : St :=
+  <span class="b">if</span> s.refunded <span class="b">then</span> s
+  <span class="b">else</span> &#10216;<span class="b">true</span>, s.payouts + <span class="n">1</span>&#10217;
+
+<span class="k">theorem</span> <span class="d">cas_preserves</span> :
+  Agree s &rarr; Agree (cas s)
+
+<span class="k">theorem</span> <span class="d">cas_safe</span> (n : <span class="b">Nat</span>) :
+  Safe (run n &#10216;<span class="b">false</span>, <span class="n">0</span>&#10217;)</pre>
+        </div>
+        <div class="col">
+          <div class="tag py">what ships</div>
+          <pre class="code sm" data-py>claimed = (Charge.objects
+    .filter(id=cid, refunded=False)
+    .update(refunded=True))
+
+if claimed == 0:
+    raise AlreadyRefunded
+
+gw.refund(charge.amount_minor)</pre>
+        </div>
+      </div>
+      <p class="kicker step">One SQL statement is one atomic step, so the model
+        has one too. Read the flag and write it in the same move, and
+        <code class="inline">(false, 1)</code> stops being reachable,
+        <em>for any number of workers, in any order.</em></p>
+    </div>
+  </section>
+
+  <!-- 8 : why not prove everything -->
+  <section class="slide">
+    <h1>So why don&rsquo;t we prove everything?</h1><div class="rule"></div>
+    <div class="body">
+      <p class="lede">If the mathematics is this good, why are any of us still
+      writing tests?</p>
+      <p class="punch step">Well&hellip; because&hellip;</p>
+      <div class="formula step">software has economics
+        <span class="sm">you spend something, you get something, and it has to pay for itself</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 : if it compiles, it is a proof -->
+  <section class="slide">
+    <h1>If it goes through, it is a proof</h1><div class="rule"></div>
+    <div class="body">
+      <p class="kicker step">And if the proof goes through on your machine,
+        it <em>is</em> a proof. Not probably. Not mostly. The checker does not
+        care who wrote it, or whether they understood it.</p>
+      <p class="kicker step">That is not true of generated code. Generated code
+        needs a reviewer. A generated proof arrives already reviewed,
+        by a program that cannot be talked round.</p>
+      <div class="formula step">it proves the statement you gave it
+        <span class="sm">whether that statement says the right thing is still yours</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 : the curve moved -->
+  <section class="slide">
+    <h1>The curve moved</h1><div class="rule"></div>
+    <div class="body">
+      <p class="lede">The steep part used to be <strong>producing</strong> the
+      proof. That is what took years to learn, and it is the part you now
+      hand over.</p>
+      <p class="kicker step">What is left is not easier. It is different.</p>
+      <div class="formula step" style="text-align:left;font-size:23px;line-height:1.75;padding:18px 30px">
+        coming up with the theorem<br>
+        reading the statement<br>
+        deciding whether it is enough
+      </div>
+      <p class="punch step">The skill is not writing the proof.<span
+        style="color:var(--faint);font-size:.6em;vertical-align:super">&nbsp;*</span></p>
+      <p class="quiet step" style="font-size:15px">* at scale, proof size and
+        token cost matter again. This is about the first step.</p>
+    </div>
+  </section>
+
+  <!-- 11b : what pagination is -->
+  <section class="slide">
+    <h1>You have shipped this a hundred times</h1><div class="rule"></div>
+    <div class="body">
+      <div class="ui">
+        <div class="hd">Refunds</div>
+        <table><tr><td>rfnd_8821</td><td>acc_42</td><td class="amt">249.00</td><td class="st">settled</td></tr><tr><td>rfnd_8822</td><td>acc_17</td><td class="amt">899.00</td><td class="st">settled</td></tr><tr><td>rfnd_8823</td><td>acc_91</td><td class="amt">120.00</td><td class="st">settled</td></tr><tr><td>rfnd_8824</td><td>acc_08</td><td class="amt">1,499.00</td><td class="st">settled</td></tr><tr><td>rfnd_8825</td><td>acc_63</td><td class="amt">75.00</td><td class="st">settled</td></tr></table>
+        <div class="pager">
+          <span class="pg on">1</span><span class="pg">2</span>
+          <span class="pg">3</span><span class="pg">4</span>
+          <span class="pg">5</span><span class="pg">&rsaquo;</span>
+          <span class="count">23 refunds &middot; 5 per page</span>
+        </div>
+      </div>
+      <p class="kicker step">Twenty-three rows, five to a page. Something has to
+        decide <em>which rows land on which page</em>, and that something
+        is a handful of lines in Django.</p>
+    </div>
+  </section>
+
+  <!-- 11 : the django chunk -->
+  <section class="slide">
+    <h1>A very small chunk of Django</h1><div class="rule"></div>
+    <div class="body">
+      <p class="lede">The code that decides which rows land on which page,
+      and the suite that covers it.</p>
+      <figure class="shot">
+        <img src="img/cov-paginate.png" data-light="img/cov-paginate-light.png" alt="coverage report for the paginator slice at 100 percent, 11 statements, 11 run, 0 missing, 0 partial">
+      </figure>
+    </div>
+  </section>
+
+  <!-- 12b : what could go wrong -->
+  <section class="slide">
+    <h1>It is arithmetic. What could go wrong?</h1><div class="rule"></div>
+    <div class="body">
+      <p class="lede">Fair. I mutated those lines nine ways: off-by-ones,
+      flipped comparisons, a dropped <code class="inline">orphans</code>.
+      Every one was caught. <strong>The suite is good.</strong></p>
+      <p class="kicker step">Then I read the rest of the file:</p>
+      <pre class="code sm step" data-py>if self.per_page &lt;= self.orphans:
+    # RemovedInDjango70Warning: ... replace with:
+    # raise ValueError(
+    #     "The orphans argument cannot be larger than or "
+    #     "equal to the per_page argument."
+    # )</pre>
+      <p class="punch bad step">Django shipped that for years before anyone
+        wrote the precondition down.</p>
+    </div>
+  </section>
+
+  <!-- 12d : before and after 7.0 -->
+  <section class="slide lean">
+    <h1>One line, and what it buys</h1><div class="rule"></div>
+    <div class="body">
+      <div class="split">
+        <div class="col">
+          <div class="cap">before <b>Django 7.0</b></div>
+          <pre class="code sm" data-py>Paginator(rows, per_page=2, orphans=20)
+
+  22 rows &rarr; 1 page of 22</pre>
+        </div>
+        <div class="col">
+          <div class="cap">from <b>Django 7.0</b></div>
+          <pre class="code sm" data-py>Paginator(rows, per_page=2, orphans=20)
+
+  ValueError: orphans cannot be larger
+  than or equal to per_page</pre>
+        </div>
+      </div>
+      <pre class="code sm"><span class="k">theorem</span> <span class="d">page_bounded</span> (hk : <span class="n">0</span> &lt; k) <span class="hyp">(ho : o &lt; k)</span> (l : <span class="b">List</span> &alpha;) :
+  &forall; p &isin; pages k o hk l, p.length &lt; <span class="n">2</span> * k</pre>
+      <button class="toggle" data-lean>delete&nbsp; (ho : o &lt; k)</button>
+      <div class="ok">$ lake build<br>&nbsp;&nbsp;Build completed successfully</div>
+      <div class="err">$ lake build<br>
+        &nbsp;&nbsp;<b>error:</b> omega could not prove the goal<br>
+        &nbsp;&nbsp;<i>a possible counterexample may satisfy</i><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;a &ge; 1&nbsp;&nbsp; a + b - c &ge; 0&nbsp;&nbsp;
+        <b>2*a - c &le; 0</b><br>
+        &nbsp;&nbsp;<i>where&nbsp; a := k&nbsp; b := o&nbsp; c := p.length</i>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 : not everything -->
+  <section class="slide">
+    <h1>I am not asking you to prove everything</h1><div class="rule"></div>
+    <div class="body">
+      <p class="lede">Not your views. Not your templates. Not your ORM.
+      Not the two million lines you inherited and cannot change.</p>
+      <div class="formula step">start at the boundary
+        <span class="sm">where your state meets something you do not control</span>
+      </div>
+      <p class="kicker step">A gateway that retries. A client that parses your
+        JSON. A queue that delivers twice. That is where the contract lives,
+        and it is <em>small.</em></p>
+    </div>
+  </section>
+
+  <!-- 15 : the cheap rung -->
+  <section class="slide">
+    <h1>And you do not have to start with a proof</h1><div class="rule"></div>
+    <div class="body">
+      <p class="lede">Every property on the last few slides can be checked
+      without proving anything at all.</p>
+      <pre class="code sm" data-py>@given(st.lists(st.integers()), st.integers(min_value=1))
+def test_pages_partition(rows, per_page):
+    assert flatten(paginate(rows, per_page)) == rows</pre>
+      <div class="pills step">
+        <span class="pill good">property-based testing</span>
+        <span class="pill good">fuzzing</span>
+        <span class="pill">pip install hypothesis</span>
+      </div>
+      <p class="kicker step">They make you <em>write the contract down.</em>
+        They do not make you discharge it. Most of the value, a fraction of
+        the price, and you can do it this afternoon.</p>
+    </div>
+  </section>
+
+  <!-- 16 : not a panacea -->
+  <section class="slide">
+    <h1>And it is not a panacea</h1><div class="rule"></div>
+    <div class="body">
+      <p class="lede">I am not claiming proof solves everything. Verify every
+      line on the planet and your software will still meet a bug.</p>
+      <p class="kicker step">A proof guarantees one thing: the code matches the spec.</p>
+      <div class="punchlist">
+        <p class="punch step">It does not guarantee the spec matches what finance meant,</p>
+        <p class="punch step">the CPU matches its datasheet,</p>
+        <p class="punch step"><em>or the customer matches their own support ticket.</em></p>
+      </div>
+      <div class="formula step">this was never about certainty
+        <span class="sm">it is about how much confidence you can afford</span>
+      </div>
+      <p class="punch step">All I am saying is that the price moved, and the
+        economics are now <em>on your side.</em></p>
+    </div>
+  </section>
+
+  <!-- 17 : thank you -->
+  <section class="slide">
+    <h1>Thank you</h1><div class="rule"></div>
+    <div class="body">
+      <p class="lede"><em>LGTM is a vote. A theorem is a receipt.</em></p>
+      <dl class="links">
+        <dt>email</dt><dd class="pref">cs24d011@cse.iitm.ac.in
+          <span class="tag">&nbsp;preferred</span></dd>
+        <dt>blog</dt><dd>durwasa-chakraborty.github.io</dd>
+        <dt>github</dt><dd>github.com/durwasa-chakraborty</dd>
+        <dt>x</dt><dd>x.com/durwasa_dc</dd>
+        <dt>bluesky</dt><dd>durwasa.bsky.social</dd>
+        <dt>linkedin</dt><dd>in/durwasa-chakraborty</dd>
+      </dl>
+      <p class="kicker step" style="font-size:17px">Special thanks to
+        <strong>Anirudh Gupta</strong>, IISc Bangalore. The idea behind
+        this talk is his.</p>
+      <p class="quiet step">Every tool in this talk is free software.
+        Python &middot; coverage.py &middot; Hypothesis &middot; Lean 4 &middot; Django</p>
+    </div>
+  </section>
+
+</div></div>
+
+<div id="bar"></div>
+<div id="num"></div>
+<div id="hint">? help</div>
+<button id="theme" type="button" aria-label="Toggle light / dark theme">light</button>
+
+<div id="ov" role="dialog" aria-label="All slides"><h2>All slides</h2><div id="ovg"></div></div>
+
+<div id="help" role="dialog" aria-label="Keyboard shortcuts"><div class="box">
+  <h3>Keys</h3>
+  <div><kbd>space</kbd> <kbd>&rarr;</kbd> <kbd>n</kbd> &nbsp;next step / slide</div>
+  <div><kbd>backspace</kbd> <kbd>&larr;</kbd> <kbd>p</kbd> &nbsp;back</div>
+  <div><kbd>o</kbd> &nbsp;overview &nbsp;&nbsp; <kbd>f</kbd> &nbsp;fullscreen &nbsp;&nbsp; <kbd>t</kbd> &nbsp;light / dark</div>
+  <div><kbd>home</kbd> <kbd>end</kbd> &nbsp;first / last</div>
+  <div><kbd>1</kbd>–<kbd>9</kbd> &nbsp;jump &nbsp;&nbsp; <kbd>g</kbd> &nbsp;go to number</div>
+  <div><kbd>esc</kbd> &nbsp;close &nbsp;&nbsp; <kbd>?</kbd> &nbsp;this</div>
+</div></div>
+
+<script>
+(function(){
+  "use strict";
+  var stage = document.getElementById('stage');
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var bar = document.getElementById('bar');
+  var num = document.getElementById('num');
+  var ov = document.getElementById('ov');
+  var ovg = document.getElementById('ovg');
+  var help = document.getElementById('help');
+
+  /* ---- light / dark theme, remembered per browser ---- */
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('theme');
+  // screenshots with a data-light twin swap along with the theme
+  var shots = Array.prototype.slice.call(document.querySelectorAll('img[data-light]'));
+  shots.forEach(function(img){
+    img.setAttribute('data-dark', img.getAttribute('src'));
+    new Image().src = img.getAttribute('data-light');  // preload, no flash on toggle
+  });
+  function setTheme(t){
+    root.setAttribute('data-theme', t);
+    shots.forEach(function(img){
+      img.setAttribute('src', img.getAttribute(t === 'light' ? 'data-light' : 'data-dark'));
+    });
+    themeBtn.textContent = t === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('deck-theme', t); } catch (e) {}
+  }
+  function toggleTheme(){
+    setTheme(root.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+  }
+  var saved = null;
+  try { saved = localStorage.getItem('deck-theme'); } catch (e) {}
+  setTheme(saved === 'light' ? 'light' : 'dark');
+  themeBtn.addEventListener('click', function(e){
+    e.stopPropagation(); toggleTheme(); themeBtn.blur();
+  });
+
+  /* ---- scale the fixed stage to whatever screen we land on ---- */
+  function fit(){
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  /* ---- python highlighting, no library ---- */
+  var RE = new RegExp([
+    '(#[^\\n]*)',
+    '("""[\\s\\S]*?"""|"(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\')',
+    '\\b(def|class|return|if|elif|else|import|from|assert|not|in|is|for|while|' +
+      'raise|with|as|try|except|finally|pass|and|or|lambda)\\b',
+    '\\b(None|True|False|self)\\b',
+    '(@[A-Za-z_][\\w.]*)',
+    '\\b(\\d+)\\b'
+  ].join('|'), 'g');
+
+  function esc(t){
+    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function hl(src){
+    var out = '', last = 0, m;
+    RE.lastIndex = 0;
+    while ((m = RE.exec(src))){
+      out += esc(src.slice(last, m.index));
+      var cls = m[1] ? 'c' : m[2] ? 's' : m[3] ? 'k' : m[4] ? 'b' : m[5] ? 'd' : 'n';
+      out += '<span class="' + cls + '">' + esc(m[0]) + '</span>';
+      last = RE.lastIndex;
+    }
+    return out + esc(src.slice(last));
+  }
+  document.querySelectorAll('pre.code[data-py]').forEach(function(pre){
+    pre.innerHTML = hl(pre.textContent.replace(/^\n/, ''));
+  });
+
+  /* ---- navigation ---- */
+  var i = 0, step = 0;
+  // ?all -> every build revealed, for reviewing slides at a glance
+  var SHOW_ALL = /all/.test(location.search + location.hash);
+
+  function steps(n){ return slides[n].querySelectorAll('.step'); }
+
+  function render(){
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    var st = steps(i);
+    st.forEach(function(e, k){ e.classList.toggle('on', SHOW_ALL || k < step); });
+    bar.style.width = ((i + 1) / slides.length * 100) + '%';
+    num.textContent = (i + 1) + ' / ' + slides.length;
+    try { location.hash = String(i + 1); } catch (e) {}
+  }
+  function go(n, atEnd){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    step = atEnd ? steps(i).length : 0;
+    render();
+  }
+  function next(){
+    if (step < steps(i).length){ step++; render(); }
+    else if (i < slides.length - 1){ go(i + 1); }
+  }
+  function prev(){
+    if (step > 0){ step--; render(); }
+    else if (i > 0){ go(i - 1, true); }
+  }
+
+  /* ---- overview ---- */
+  slides.forEach(function(s, k){
+    var h = s.querySelector('h1');
+    var b = document.createElement('button');
+    b.className = 'ovc';
+    b.innerHTML = '<span class="i">' + (k + 1) + '</span><span>' +
+                  esc(h ? h.textContent : 'slide') + '</span>';
+    b.addEventListener('click', function(){ ov.classList.remove('on'); go(k); });
+    ovg.appendChild(b);
+  });
+
+  function closeAll(){ ov.classList.remove('on'); help.classList.remove('on'); }
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+
+    if (k === 'Escape'){ closeAll(); return; }
+    if (k === '?'){ e.preventDefault(); ov.classList.remove('on');
+                    help.classList.toggle('on'); return; }
+    if (k === 'o' || k === 'O'){ e.preventDefault(); help.classList.remove('on');
+                                 ov.classList.toggle('on'); return; }
+    if (ov.classList.contains('on') || help.classList.contains('on')) return;
+    if (e.repeat && k !== 'ArrowRight' && k !== 'ArrowLeft') return;
+    var foc = document.activeElement;
+    if (foc && foc.tagName === 'BUTTON'){
+      foc.blur();
+      if (k === 'Enter'){ e.preventDefault(); return; }
+    }
+
+    if (k === ' ' || k === 'ArrowRight' || k === 'PageDown' || k === 'n' || k === 'j'){
+      e.preventDefault(); next();
+    } else if (k === 'Backspace' || k === 'ArrowLeft' || k === 'PageUp' ||
+               k === 'p' || k === 'h'){
+      e.preventDefault(); prev();
+    } else if (k === 'Home'){ e.preventDefault(); go(0); }
+    else if (k === 'End'){ e.preventDefault(); go(slides.length - 1); }
+    else if (k === 't' || k === 'T'){ e.preventDefault(); toggleTheme(); }
+    else if (k === 'f' || k === 'F'){
+      e.preventDefault();
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen &&
+           document.documentElement.requestFullscreen();
+    }
+    else if (k === 'g' || k === 'G'){
+      e.preventDefault();
+      var t = prompt('Go to slide (1-' + slides.length + ')');
+      var v = parseInt(t, 10);
+      if (isFinite(v)) go(v - 1);
+    }
+    else if (/^[1-9]$/.test(k)){ e.preventDefault(); go(parseInt(k, 10) - 1); }
+  });
+
+  /* the lean hypothesis toggle */
+  document.querySelectorAll('[data-lean]').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var sec = btn.closest('.slide');
+      var off = sec.classList.toggle('broken');
+      btn.innerHTML = off ? 'put&nbsp; (ho : o &lt; k) &nbsp;back'
+                          : 'delete&nbsp; (ho : o &lt; k)';
+    });
+  });
+
+  /* on-slide buttons never hold focus, so a later Space/Enter only navigates */
+  document.querySelectorAll('#theme, [data-lean]').forEach(function(btn){
+    btn.addEventListener('mousedown', function(e){ e.preventDefault(); });
+  });
+
+  /* click / tap to advance, right side forward, left side back.
+     one move per click: ignore controls, text selections and the 2nd click of a double-click */
+  document.getElementById('viewport').addEventListener('click', function(e){
+    if (e.target.closest('button, a, input, select, textarea')) return;
+    if (e.detail > 1) return;
+    var sel = window.getSelection && window.getSelection();
+    if (sel && !sel.isCollapsed) return;
+    if (e.clientX < window.innerWidth * 0.18) prev(); else next();
+  });
+
+  var start = parseInt((location.hash || '').slice(1), 10);
+  go(isFinite(start) && start > 0 ? start - 1 : 0);
+})();
+</script>
+</body>
+</html>
