@@ -432,7 +432,8 @@ this was never about certainty
 {{{faint(linkedin)}}}   in/durwasa-chakraborty
 #+pause:
 
-Special thanks to *Anirudh Gupta*, IISc Bangalore for verifying within boundaries and *Prof. KC Sivaramakrishnan and Prof. Kartik Nagar* for PBT and fuzzing and ... well everything about Formal Verification.
+Special thanks to *Anirudh Gupta*, IISc Bangalore for verifying within boundaries and
+*Prof. KC Sivaramakrishnan and Prof. Kartik Nagar* for PBT and fuzzing and ... well everything about Formal Verification.
 
 #+pause:
 
