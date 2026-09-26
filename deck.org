@@ -400,18 +400,12 @@ They make you /write the contract down./ They do not make you discharge it. Most
 
 * And it is not a silver bullet
 
-I am not claiming proof solves everything. Verify every line on the planet and your software will still meet a bug.
-#+pause:
+
+
 
 A proof guarantees one thing: the code matches the spec.
 #+pause:
 
-{{{punch(It does not guarantee the spec matches what finance meant,)}}}
-#+pause:
-{{{punch(the CPU matches its datasheet,)}}}
-#+pause:
-{{{punchem(or the customer matches their own support ticket.)}}}
-#+pause:
 
 #+begin_quote
 this was never about certainty
