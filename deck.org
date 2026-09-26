@@ -402,7 +402,6 @@ They make you /write the contract down./ They do not make you discharge it. Most
 
 
 
-
 A proof guarantees one thing: the code matches the spec.
 #+pause:
 
