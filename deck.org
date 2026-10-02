@@ -268,7 +268,7 @@ software has economics
 And if the proof goes through on your machine, it /is/ a proof. Not probably. Not mostly. The checker does not care who wrote it, or whether they understood it.
 #+pause:
 
-That is not true of generated code. Generated code needs a reviewer. A generated proof arrives already reviewed, by a program that cannot be talked round.
+That is not true of generated code.
 #+pause:
 
 #+begin_quote
@@ -281,7 +281,7 @@ it proves the statement you gave it
 The steep part used to be *producing* the proof. That is what took years to learn, and it is the part you now hand over.
 #+pause:
 
-What is left is not easier. It is different.
+What is left is different.
 #+pause:
 
 #+begin_quote
@@ -371,8 +371,7 @@ $ lake build
 
 * I am not asking you to prove everything
 
-Not your views. Not your templates. Not your ORM. Not the two million lines you inherited and cannot change.
-#+pause:
+
 
 #+begin_quote
 start at the boundary

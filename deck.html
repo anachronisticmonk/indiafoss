@@ -30,12 +30,12 @@
     --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
     --mono:"Fira Code","Fira Code Retina","SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
   }
-  /* light theme: Nord Snow Storm ground, inks darkened for projector contrast */
+  /* light theme: a white ground, Nord inks darkened for projector contrast */
   :root[data-theme="light"]{
-    --ground:#ECEFF4;
-    --panel:#E5E9F0;
-    --panel-2:#D8DEE9;
-    --rule:#C3CBD9;
+    --ground:#FFFFFF;
+    --panel:#F3F5F8;
+    --panel-2:#E8ECF1;
+    --rule:#D3D9E3;
     --ink:#2E3440;
     --dim:#4C566A;
     --faint:#737D90;
@@ -44,12 +44,12 @@
     --bad:#A63D48;
     --warn:#8F6400;
     --violet:#83577E;
-    --term:#F4F6F9;
-    --row:#D3D9E3;
-    --row-2:#D8DEE9;
+    --term:#F7F8FA;
+    --row:#E2E6ED;
+    --row-2:#E8ECF1;
     --good-line:#9DBA88;
     --bad-line:#D59AA0;
-    --scrim:rgba(236,239,244,.97);
+    --scrim:rgba(255,255,255,.97);
     --shadow:rgba(46,52,64,.16);
     color-scheme:light;
   }
@@ -654,9 +654,7 @@ gw.refund(charge.amount_minor)</pre>
       <p class="kicker step">And if the proof goes through on your machine,
         it <em>is</em> a proof. Not probably. Not mostly. The checker does not
         care who wrote it, or whether they understood it.</p>
-      <p class="kicker step">That is not true of generated code. Generated code
-        needs a reviewer. A generated proof arrives already reviewed,
-        by a program that cannot be talked round.</p>
+      <p class="kicker step">That is not true of generated code.</p>
       <div class="formula step">it proves the statement you gave it
         <span class="sm">whether that statement says the right thing is still yours</span>
       </div>
@@ -670,7 +668,7 @@ gw.refund(charge.amount_minor)</pre>
       <p class="lede">The steep part used to be <strong>producing</strong> the
       proof. That is what took years to learn, and it is the part you now
       hand over.</p>
-      <p class="kicker step">What is left is not easier. It is different.</p>
+      <p class="kicker step">What is left is different.</p>
       <div class="formula step" style="text-align:left;font-size:23px;line-height:1.75;padding:18px 30px">
         coming up with the theorem<br>
         reading the statement<br>
@@ -771,9 +769,7 @@ gw.refund(charge.amount_minor)</pre>
   <section class="slide">
     <h1>I am not asking you to prove everything</h1><div class="rule"></div>
     <div class="body">
-      <p class="lede">Not your views. Not your templates. Not your ORM.
-      Not the two million lines you inherited and cannot change.</p>
-      <div class="formula step">start at the boundary
+      <div class="formula">start at the boundary
         <span class="sm">where your state meets something you do not control</span>
       </div>
       <p class="kicker step">A gateway that retries. A client that parses your
